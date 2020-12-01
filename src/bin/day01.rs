@@ -16,7 +16,7 @@ fn part01(numbers: &Vec<i64>) -> i64 {
         }
     }
 
-    0
+    unreachable!()
 }
 
 fn part02(numbers: &Vec<i64>) -> i64 {
@@ -30,7 +30,7 @@ fn part02(numbers: &Vec<i64>) -> i64 {
         }
     }
 
-    0
+    unreachable!()
 }
 
 #[cfg(test)]
