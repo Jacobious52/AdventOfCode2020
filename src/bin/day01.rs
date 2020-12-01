@@ -9,11 +9,7 @@ fn main() {
 
 fn part01(numbers: &Vec<i64>) -> i64 {
     for (i, x) in numbers.iter().enumerate() {
-        for (j, y) in numbers.iter().enumerate() {
-            if i == j {
-                continue;
-            }
-
+        for y in numbers.iter().skip(i) {
             if x + y == 2020 {
                 return x * y;
             }
@@ -25,12 +21,8 @@ fn part01(numbers: &Vec<i64>) -> i64 {
 
 fn part02(numbers: &Vec<i64>) -> i64 {
     for (i, x) in numbers.iter().enumerate() {
-        for (j, y) in numbers.iter().enumerate() {
-            for (k, z) in numbers.iter().enumerate() {
-                if i == j || j == k || i == k {
-                    continue;
-                }
-
+        for (j, y) in numbers.iter().skip(i).enumerate() {
+            for z in numbers.iter().skip(j) {
                 if x + y + z == 2020 {
                     return x * y * z;
                 }
