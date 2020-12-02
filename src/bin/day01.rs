@@ -1,6 +1,7 @@
 use advent_of_code_2020::advent::util;
 
 fn main() {
+    color_backtrace::install();
     let input = include_str!("../../inputs/1.1.txt");
     let numbers = util::numbers(input);
     println!("{}", part01(&numbers));
