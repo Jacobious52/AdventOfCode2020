@@ -12,39 +12,33 @@ fn main() {
     color_backtrace::install();
     let input = include_str!("../../inputs/2.1.txt");
     let items: Vec<Item> = util::lines(input).iter().map(|s| parse_item(s)).collect();
-    println!("{}", part01(&items));
-    println!("{}", part02(&items));
+    println!("part01: {}", part01(&items));
+    println!("part02: {}", part02(&items));
 }
 
 fn parse_item(line: &str) -> Item {
-    let tokens: Vec<String> = line
+    let tokens: Vec<_> = line
         .split_whitespace()
-        .map(|t| t.trim_end_matches(":").to_owned())
+        .map(|t| t.trim_end_matches(":"))
         .collect();
 
-    let range: Vec<String> = tokens[0].split("-").map(|s| s.to_owned()).collect();
+    let range: Vec<_> = tokens[0].split("-").collect();
 
     let min = range[0].parse().unwrap();
     let max = range[1].parse().unwrap();
-    let c = tokens[1].clone();
-    let pass = tokens[2].clone();
+    let c = tokens[1].to_string();
+    let pass = tokens[2].to_string();
     Item { min, max, c, pass }
 }
 
 fn part01(items: &[Item]) -> i64 {
     let mut valid = 0;
     for item in items {
-        let count: i64 = item
+        let count = item
             .pass
             .chars()
-            .map(|c| {
-                if c.to_string() == item.c {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            })
-            .sum();
+            .filter(|c| c.to_string() == item.c)
+            .count() as i64;
 
         if count >= item.min && count <= item.max {
             valid += 1;
@@ -57,8 +51,18 @@ fn part01(items: &[Item]) -> i64 {
 fn part02(items: &[Item]) -> i64 {
     let mut valid = 0;
     for item in items {
-        let pos_1 = item.pass.chars().nth((item.min as usize) - 1).unwrap().to_string();
-        let pos_2 = item.pass.chars().nth((item.max as usize) - 1).unwrap().to_string();
+        let pos_1 = item
+            .pass
+            .chars()
+            .nth((item.min as usize) - 1)
+            .unwrap()
+            .to_string();
+        let pos_2 = item
+            .pass
+            .chars()
+            .nth((item.max as usize) - 1)
+            .unwrap()
+            .to_string();
 
         if (pos_1 == item.c && pos_2 != item.c) || (pos_1 != item.c && pos_2 == item.c) {
             valid += 1;
