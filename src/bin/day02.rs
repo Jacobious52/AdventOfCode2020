@@ -19,10 +19,10 @@ fn main() {
 fn parse_item(line: &str) -> Item {
     let tokens: Vec<_> = line
         .split_whitespace()
-        .map(|t| t.trim_end_matches(":"))
+        .map(|t| t.trim_end_matches(':'))
         .collect();
 
-    let range: Vec<_> = tokens[0].split("-").collect();
+    let range: Vec<_> = tokens[0].split('-').collect();
 
     let min = range[0].parse().unwrap();
     let max = range[1].parse().unwrap();
@@ -95,7 +95,8 @@ mod test {
         let input = "
         1-3 a: abcde\n\
         1-3 b: cdefg\n\
-        2-9 c: ccccccccc\n";
+        2-9 c: ccccccccc\n"
+            .trim();
         let items: Vec<Item> = util::lines(input).iter().map(|s| parse_item(s)).collect();
         assert_eq!(2, part01(&items))
     }
@@ -105,7 +106,8 @@ mod test {
         let input = "
         1-3 a: abcde\n\
         1-3 b: cdefg\n\
-        2-9 c: ccccccccc\n";
+        2-9 c: ccccccccc\n"
+            .trim();
         let items: Vec<Item> = util::lines(input).iter().map(|s| parse_item(s)).collect();
         assert_eq!(1, part02(&items))
     }

@@ -7,12 +7,9 @@ pub fn numbers_commas(s: &str) -> Vec<i64> {
 }
 
 pub fn lines(s: &str) -> Vec<String> {
-    s.lines()
-        .map(|s| s.trim().to_string())
-        .filter(|l| l != "")
-        .collect()
+    s.lines().map(String::from).collect()
 }
 
 pub fn words(s: &str) -> Vec<String> {
-    s.split_whitespace().map(|s| s.to_string()).collect()
+    s.split_whitespace().map(String::from).collect()
 }

@@ -8,7 +8,7 @@ fn main() {
     println!("{}", part02(&numbers));
 }
 
-fn part01(numbers: &Vec<i64>) -> i64 {
+fn part01(numbers: &[i64]) -> i64 {
     for (i, x) in numbers.iter().enumerate() {
         for y in numbers.iter().skip(i) {
             if x + y == 2020 {
@@ -20,7 +20,7 @@ fn part01(numbers: &Vec<i64>) -> i64 {
     unreachable!()
 }
 
-fn part02(numbers: &Vec<i64>) -> i64 {
+fn part02(numbers: &[i64]) -> i64 {
     for (i, x) in numbers.iter().enumerate() {
         for (j, y) in numbers.iter().skip(i).enumerate() {
             for z in numbers.iter().skip(j) {
