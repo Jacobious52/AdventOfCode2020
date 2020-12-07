@@ -107,7 +107,7 @@ impl Passport {
         for field in &self.fields {
             *fields_found.entry(discriminant(field)).or_insert(0) += 1;
         }
-
+        
         fields_found.values().all(|c| *c == 1)
     }
 
