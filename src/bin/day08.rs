@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use reformation::Reformation;
 
 fn main() {
     color_backtrace::install();
@@ -7,34 +7,21 @@ fn main() {
     println!("part02 {}", part02(input));
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Reformation, Debug, Copy, Clone)]
 enum Instr {
+    #[reformation("nop {}")]
     Nop(i64),
+    #[reformation("acc {}")]
     Acc(i64),
+    #[reformation("jmp {}")]
     Jmp(i64),
-}
-
-impl FromStr for Instr {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut tokens = s.split_whitespace();
-        Ok(match tokens.next().unwrap() {
-            "nop" => Instr::Nop(tokens.next().unwrap().parse().unwrap()),
-            "acc" => Instr::Acc(tokens.next().unwrap().parse().unwrap()),
-            "jmp" => Instr::Jmp(tokens.next().unwrap().parse().unwrap()),
-            t => panic!("unknown instr {}", t)
-        })
-    }
 }
 
 #[derive(Debug, Default, Clone)]
 struct Machine {
     pc: usize,
     program: Vec<Instr>,
-
     accumulator: i64,
-
     seen: Vec<usize>,
 }
 
@@ -49,7 +36,7 @@ impl Machine {
     fn run(mut self) -> (usize, i64) {
         while !self.seen.contains(&self.pc) {
             if self.pc >= self.program.len() {
-                break
+                break;
             }
 
             self.seen.push(self.pc);
@@ -61,10 +48,8 @@ impl Machine {
                 Instr::Acc(x) => {
                     self.accumulator += x;
                     self.pc + 1
-                },
-                Instr::Jmp(x) => {
-                    ((self.pc as i64) + x) as usize
                 }
+                Instr::Jmp(x) => ((self.pc as i64) + x) as usize,
             };
         }
 
@@ -73,54 +58,55 @@ impl Machine {
 
     // accounts for multiple solutions and returns the highest acc
     fn fix(self) -> i64 {
-        let mut found = Vec::new();
         let mut last_mut = 0;
         loop {
             let program_copy = self.program.clone();
             let mut fixed_machine = Machine::new(program_copy);
 
-            let mutate = fixed_machine.program.iter().enumerate().find(|(pc, i)| {
-                *pc > last_mut && match i {
-                    Instr::Jmp(_) => true,
-                    Instr::Nop(_) => true,
-                    _ => false,
-                }
-            }).map(|(pc, i)| {
-                (pc, match i {
-                    Instr::Jmp(x) => Instr::Nop(*x),
-                    Instr::Nop(x) => Instr::Jmp(*x),
-                    _ => *i,
+            let (s_pc, s_i) = fixed_machine
+                .program
+                .iter()
+                .enumerate()
+                .find(|(pc, i)| {
+                    *pc > last_mut
+                        && match i {
+                            Instr::Jmp(_) => true,
+                            Instr::Nop(_) => true,
+                            _ => false,
+                        }
                 })
-            });
-
-            let (s_pc, s_i) = match mutate {
-                Some((a, b)) => (a, b),
-                None => break,
-            };
-
-            dbg!(s_pc, s_i);
+                .map(|(pc, i)| {
+                    (
+                        pc,
+                        match i {
+                            Instr::Jmp(x) => Instr::Nop(*x),
+                            Instr::Nop(x) => Instr::Jmp(*x),
+                            _ => *i,
+                        },
+                    )
+                })
+                .unwrap();
 
             fixed_machine.program[s_pc] = s_i;
             last_mut = s_pc;
-            
+
             let acc = fixed_machine.run();
             if acc.0 >= self.program.len() {
-                found.push(acc.1);
+                return acc.1;
             }
         }
-        *found.iter().max().unwrap()
     }
 }
 
 fn part01(s: &str) -> i64 {
-    let instructions: Vec<Instr> = s.lines().map(|s| s.parse().unwrap()).collect();
+    let instructions: Vec<Instr> = s.lines().map(|s| Instr::parse(s).unwrap()).collect();
     let machine = Machine::new(instructions);
 
     machine.run().1
 }
 
 fn part02(s: &str) -> i64 {
-    let instructions: Vec<Instr> = s.lines().map(|s| s.parse().unwrap()).collect();
+    let instructions: Vec<Instr> = s.lines().map(|s| Instr::parse(s).unwrap()).collect();
     let machine = Machine::new(instructions);
 
     machine.fix()
