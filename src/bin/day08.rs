@@ -20,7 +20,7 @@ impl FromStr for Instr {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut tokens = s.split_whitespace();
         Ok(match tokens.next().unwrap() {
-            "nop" => Instr::Acc(tokens.next().unwrap().parse().unwrap()),
+            "nop" => Instr::Nop(tokens.next().unwrap().parse().unwrap()),
             "acc" => Instr::Acc(tokens.next().unwrap().parse().unwrap()),
             "jmp" => Instr::Jmp(tokens.next().unwrap().parse().unwrap()),
             t => panic!("unknown instr {}", t)
@@ -28,7 +28,7 @@ impl FromStr for Instr {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 struct Machine {
     pc: usize,
     program: Vec<Instr>,
@@ -39,8 +39,14 @@ struct Machine {
 }
 
 impl Machine {
-    fn run(&mut self) -> i64 {
+    fn new(program: Vec<Instr>) -> Self {
+        Machine {
+            program,
+            ..Default::default()
+        }
+    }
 
+    fn run(mut self) -> (usize, i64) {
         while !self.seen.contains(&self.pc) {
             if self.pc >= self.program.len() {
                 break
@@ -62,19 +68,18 @@ impl Machine {
             };
         }
 
-        self.accumulator
+        (self.pc, self.accumulator)
     }
 
-    fn fix(&mut self) -> i64 {
-
+    // accounts for multiple solutions and returns the highest acc
+    fn fix(self) -> i64 {
+        let mut found = Vec::new();
         let mut last_mut = 0;
         loop {
-            self.pc = 0;
-            self.seen = Vec::new();
-            self.accumulator = 0;
-
             let program_copy = self.program.clone();
-            let (s_pc, s_i) = self.program.iter().enumerate().find(|(pc, i)| {
+            let mut fixed_machine = Machine::new(program_copy);
+
+            let mutate = fixed_machine.program.iter().enumerate().find(|(pc, i)| {
                 *pc > last_mut && match i {
                     Instr::Jmp(_) => true,
                     Instr::Nop(_) => true,
@@ -86,43 +91,37 @@ impl Machine {
                     Instr::Nop(x) => Instr::Jmp(*x),
                     _ => *i,
                 })
-            }).unwrap();
+            });
 
-            self.program[s_pc] = s_i;
+            let (s_pc, s_i) = match mutate {
+                Some((a, b)) => (a, b),
+                None => break,
+            };
+
+            dbg!(s_pc, s_i);
+
+            fixed_machine.program[s_pc] = s_i;
             last_mut = s_pc;
             
-            let acc = self.run();
-            if self.pc >= self.program.len() {
-                return acc;
+            let acc = fixed_machine.run();
+            if acc.0 >= self.program.len() {
+                found.push(acc.1);
             }
-
-            self.program = program_copy;
         }
+        *found.iter().max().unwrap()
     }
 }
 
 fn part01(s: &str) -> i64 {
     let instructions: Vec<Instr> = s.lines().map(|s| s.parse().unwrap()).collect();
+    let machine = Machine::new(instructions);
 
-    let mut machine = Machine {
-        pc: 0,
-        accumulator: 0,
-        seen: Vec::new(),
-        program: instructions,
-    };
-
-    machine.run()
+    machine.run().1
 }
 
 fn part02(s: &str) -> i64 {
     let instructions: Vec<Instr> = s.lines().map(|s| s.parse().unwrap()).collect();
-
-    let mut machine = Machine {
-        pc: 0,
-        accumulator: 0,
-        seen: Vec::new(),
-        program: instructions,
-    };
+    let machine = Machine::new(instructions);
 
     machine.fix()
 }
