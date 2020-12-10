@@ -1,6 +1,5 @@
 use advent_of_code_2020::advent::util;
-use cached::proc_macro::cached;
-use std::collections::HashMap;
+use cached::{SizedCache, proc_macro::cached};
 
 fn main() {
     color_backtrace::install();
@@ -39,16 +38,15 @@ fn part02(nums: &[i64]) -> i64 {
     sorted.insert(0, 0);
     sorted.push(sorted.last().unwrap() + 3);
 
-    let mut map = HashMap::new();
-
-    backtrack(0, &sorted, &mut map)
+    backtrack(0, &sorted)
 }
 
-fn backtrack(start: usize, nums: &[i64], mut map: &mut HashMap<usize, i64>) -> i64 {
-    if let Some(r) = map.get(&start) {
-        return *r
-    }
-
+#[cached(
+    type = "SizedCache<usize, i64>",
+    create = "{ SizedCache::with_size(100) }",
+    convert = r#"{ start }"#
+)]
+fn backtrack(start: usize, nums: &[i64]) -> i64 {
     if start >= nums.len() - 1 {
         return 1;
     }
@@ -58,17 +56,13 @@ fn backtrack(start: usize, nums: &[i64], mut map: &mut HashMap<usize, i64>) -> i
     let next: Vec<_> = nums[((start + 1)..((start + 4).min(nums.len())))]
         .iter()
         .enumerate()
-        // .inspect(|(j, x)| {
-        //     dbg!(j, x);
-        // })
         .filter(|(_, x)| *x - 3 <= nums[start])
         .collect();
 
     for (j, _) in next {
-        ways += backtrack(start + (j + 1), nums, &mut map);
+        ways += backtrack(start + (j + 1), nums);
     }
 
-    map.insert(start, ways);
     ways as i64
 }
 
